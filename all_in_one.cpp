@@ -102,34 +102,20 @@ namespace cexpr
         template <size_t w, size_t h>
         constexpr auto get_neighbours(pos p, maze_array<w,h> &maze, size_t desired_value = 0)
         {
-            neighbours n{};
+            neighbours neighb{};
 
+            const auto positions = {
+                    pos{ p.x, p.y - 1 },
+                    pos{ p.x, p.y + 1 },
+                    pos{ p.x - 1, p.y },
+                    pos{ p.x + 1, p.y }
+            };
 
-            if(is_in(pos{ p.x, p.y - 1 }, maze) &&
-               maze[p.y - 1][p.x] == desired_value)
-            {
-                n.values[n.count++] = pos{p.x, p.y - 1};
-            }
+            for(const auto& p : positions)
+                if(is_in(p, maze) && maze[p.y][p.x] == desired_value)
+                    neighb.push(p);
 
-            if(is_in(pos{ p.x, p.y + 1 }, maze) &&
-               maze[p.y + 1][p.x] == desired_value)
-            {
-                n.values[n.count++] = pos{p.x, p.y + 1};
-            }
-
-            if(is_in(pos{ p.x - 1, p.y }, maze) &&
-               maze[p.y][p.x - 1] == desired_value)
-            {
-                n.values[n.count++] = pos{p.x - 1, p.y};
-            }
-
-            if(is_in(pos{ p.x + 1, p.y }, maze) &&
-               maze[p.y][p.x + 1] == desired_value)
-            {
-                n.values[n.count++] = pos{p.x + 1, p.y};
-            }
-
-            return n;
+            return neighb;
         };
     }
 }
