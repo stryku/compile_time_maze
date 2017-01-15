@@ -15,7 +15,7 @@ int main()
         char c;
         std::cin>>c;
 
-        size_t or_value = (c == 1) ? mask : 0;
+        size_t or_value = (c == '1') ? mask : 0;
         hash |= or_value;
     }
 
