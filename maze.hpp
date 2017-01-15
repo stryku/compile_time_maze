@@ -48,5 +48,4 @@ namespace cexpr
             return n;
         };
     }
-
 }

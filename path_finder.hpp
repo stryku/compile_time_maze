@@ -5,20 +5,27 @@
 #include "pos.hpp"
 #include "maze.hpp"
 
+
 namespace cexpr
 {
     namespace details
     {
         template <size_t w, size_t h>
-        constexpr void find_path_impl(pos current,
-                                      pos to,
-                                      maze_array<w,h>& current_maze,
-                                      size_t current_length = 1)
+        using path_t = max_array<char, w*h>;
+
+        template <size_t w, size_t h>
+        constexpr max_array<pos, w*h> find_path_impl(pos current,
+                                                     pos to,
+                                                     maze_array<w,h>& current_maze,
+                                                     max_array<pos, w*h> &current_path,
+                                                     size_t current_length = 1)
         {
             current_maze[current.y][current.x] = current_length;
 
             if(current == to)
-                return;
+                return current_path;
+
+            current_path.push(current);
 
             const auto neighb = maze::get_neighbours(current, current_maze);
 
@@ -27,48 +34,26 @@ namespace cexpr
                 const auto neighbour_pos = neighb.values[i];
                 current_maze[neighbour_pos.y][neighbour_pos.x] = current_length+1;
                 if(neighbour_pos == to)
-                    return;
+                {
+                    current_path.push(neighbour_pos);
+                    return current_path;
+                }
             }
 
             for(size_t i = 0; i < neighb.count; ++i)
-                find_path_impl(neighb.values[i], to, current_maze, current_length + 1);
+                return find_path_impl(neighb.values[i], to, current_maze, current_path, current_length + 1);
+
+            current_path.pop();
+
+            return current_path;
         };
-
-        template <typename maze_t>
-        constexpr pos find_next_path_tile(pos current, maze_t maze)
-        {
-            const auto current_value = maze[current.y][current.x];
-            const auto neighb = maze::get_neighbours(current, maze, current_value+1);
-
-            if(neighb.values.empty())
-                return pos::bad();
-
-            return neighb.values[0];
-        }
 
         template <size_t w, size_t h>
         constexpr auto create_bad_path_message()
         {
             max_array<char, w*h> path{};
 
-            path.push('p');
-            path.push('a');
-            path.push('t');
-            path.push('h');
-            path.push(' ');
-            path.push('d');
-            path.push('o');
-            path.push('e');
-            path.push('s');
             path.push('n');
-            path.push('\'');
-            path.push('t');
-            path.push(' ');
-            path.push('e');
-            path.push('x');
-            path.push('i');
-            path.push('s');
-            path.push('t');
 
             return path;
         };
@@ -84,29 +69,21 @@ namespace cexpr
         }
 
         template <size_t w, size_t h>
-        constexpr auto extract_path(pos current,
-                                      pos to,
-                                      maze_array<w,h>& current_maze)
+        constexpr auto translate_path(max_array<pos, w*h> &path)
         {
-            max_array<char, w*h> path{};
+            max_array<char, w*h> translated_path{};
 
-            while(current != to)
+            for(size_t i = 0; i < path.count-1; ++i)
             {
-                if(current.is_bad())
-                    return create_bad_path_message<w,h>();
-
-                const auto next = find_next_path_tile(current, current_maze);
-                const char dir = direction(current, next);
+                const char dir = direction(path.values[i], path.values[i+1]);
 
                 if(dir == '\0')
                     return create_bad_path_message<w,h>();
 
-                path.push(dir);
-
-                current = next;
+                translated_path.push(dir);
             }
 
-            return path;
+            return translated_path;
         };
     }
 
@@ -118,8 +95,16 @@ namespace cexpr
         maze_array<w, h> maze{};
         maze = disassemble_hash<w, h, hash>();
 
-        details::find_path_impl(from, to, maze);
+        if(maze[from.y][from.x] == WALL)
+            return details::create_bad_path_message<w, h>();
 
-        return details::extract_path(from, to, maze);
+        max_array<pos, w*h> path{};
+
+        path = details::find_path_impl(from, to, maze, path);
+
+        if(path.count > 0 && path.back() != to)
+            return details::create_bad_path_message<w, h>();
+
+        return details::translate_path<w, h>(path);
     };
 }

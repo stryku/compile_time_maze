@@ -13,7 +13,7 @@ namespace cexpr
         for (size_t y = 0; y < h; ++y)
             for(size_t x = 0; x < w; ++x)
             {
-                arr[y][x] = (hash & mask) * WALL;
+                arr[y][x] = (hash & mask) ? WALL : 0;
                 mask *= 2;
             }
 
