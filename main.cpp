@@ -1,16 +1,9 @@
 #include <iostream>
 #include "paths_generator.hpp"
+#include "defines.hpp"
 
-#ifndef WIDTH
-#define WIDTH 3
-#endif
-
-#ifndef HEIGHT
-#define HEIGHT 3
-#endif
-
-constexpr auto paths = cexpr::generate_paths<WIDTH,HEIGHT>(cexpr::pos{0,0},
-                                                           cexpr::pos{2,2});
+constexpr auto paths = cexpr::generate_paths<WIDTH,HEIGHT>(cexpr::pos{FROM_X, FROM_Y},
+                                                           cexpr::pos{TO_X, TO_Y});
 
 int main()
 {
