@@ -21,7 +21,7 @@ int main()
 
     const auto& path = paths[hash];
 
-    for(int i = path.count - 1; i >= 0; --i)
+    for(size_t i = 0; i < path.count; ++i)
         std::cout<<path.values[i];
 
     return 0;
